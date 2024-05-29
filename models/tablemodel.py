@@ -1,10 +1,11 @@
+from typing import List
 import pandas as pd
 from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
 
-class VariableTableModel(QAbstractTableModel):
-    def __init__(self, data: pd.DataFrame = pd.DataFrame()):
-        super(VariableTableModel, self).__init__()
-        self._cols = ["Name", "Type", "Default Value", "Publishing", "Rate (ms)", "Source Device", "Destination Devices"]
+class TableModel(QAbstractTableModel):
+    def __init__(self, cols: List[str], data: pd.DataFrame = pd.DataFrame()):
+        super(TableModel, self).__init__()
+        self._cols = cols
         self._data = data
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: Qt.ItemDataRole = None):
@@ -12,11 +13,11 @@ class VariableTableModel(QAbstractTableModel):
             return self._cols[section]
         else:
             return QAbstractTableModel.headerData(self, section, orientation, role)
-        
+
     def setData(self, index, value, role):
         if role == Qt.ItemDataRole.EditRole:
             self._data.iloc[index.row(),index.column()] = value
-            return super(VariableTableModel, self).setData(index, value, role)
+            return super(TableModel, self).setData(index, value, role)
 
 
     def flags(self, _):

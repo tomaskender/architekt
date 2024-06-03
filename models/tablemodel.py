@@ -8,6 +8,9 @@ class TableModel(QAbstractTableModel):
         self._cols = cols
         self._data = data
 
+    def columns(self):
+        return self._cols
+
     def headerData(self, section: int, orientation: Qt.Orientation, role: Qt.ItemDataRole = None):
         if role == Qt.ItemDataRole.DisplayRole and orientation==Qt.Orientation.Horizontal:
             return self._cols[section]

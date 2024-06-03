@@ -1,10 +1,10 @@
 import pandas as pd
+from models.column import Column
 from models.tablemodel import TableModel
-from PySide6.QtCore import Qt
 
 class DeviceTableModel(TableModel):
     def __init__(self, data: pd.DataFrame = pd.DataFrame()):
-        cols = ["Name"]
+        cols = [Column.NAME.value]
         super(DeviceTableModel, self).__init__(cols, data)
 
     def setData(self, index, value, role):

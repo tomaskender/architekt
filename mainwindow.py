@@ -6,6 +6,7 @@ import sys
 
 from delegates.combobox import ComboboxDelegate
 from delegates.multiselect import MultiSelectDelegate
+from models.column import Column
 from models.devicetablemodel import DeviceTableModel
 from models.variabletablemodel import VariableTableModel
 from ui.ui_form import Ui_MainWindow
@@ -24,16 +25,17 @@ class MainWindow(QMainWindow):
         self.ui.variableTableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         # Setup variable tab
+        varModel = VariableTableModel()
         varTableView = self.ui.variableTableView
-        varTableView.setModel(VariableTableModel())
+        varTableView.setModel(varModel)
         varTableView.setItemDelegateForColumn(
-            1, ComboboxDelegate(config.get("types", "value").split(" "), varTableView)) # TODO dynamic lookup of column index
+            varModel.columns().index(Column.TYPE.value), ComboboxDelegate(config.get("types", "value").split(" "), varTableView)) # TODO dynamic lookup of column index
         varTableView.setItemDelegateForColumn(
-            3, ComboboxDelegate(["Sync", "Async"], varTableView)) # TODO dynamic lookup of column index
+            varModel.columns().index(Column.PUBLISHING.value), ComboboxDelegate(["Sync", "Async"], varTableView)) # TODO dynamic lookup of column index
         varTableView.setItemDelegateForColumn(
-            5, ComboboxDelegate(config.get("types", "dev").split(" "), varTableView)) # TODO dynamic lookup of column index
+            varModel.columns().index(Column.SRC_DEV.value), ComboboxDelegate(config.get("types", "dev").split(" "), varTableView)) # TODO dynamic lookup of column index
         varTableView.setItemDelegateForColumn(
-            6, MultiSelectDelegate(config.get("types", "dev").split(" "), varTableView)) # TODO dynamic lookup of column index
+            varModel.columns().index(Column.DST_DEV.value), MultiSelectDelegate(config.get("types", "dev").split(" "), varTableView)) # TODO dynamic lookup of column index
 
         # Setup device tab
         devTableView = self.ui.deviceTableView
@@ -66,13 +68,13 @@ class MainWindow(QMainWindow):
                 # delete currently selected device from variables
                 name = i.data()
                 varModel = self.ui.variableTableView.model()._data
-                varModel.loc[varModel["Source Device"] == name, "Source Device"] = ""
+                varModel.loc[varModel[Column.SRC_DEV.value] == name, Column.SRC_DEV.value] = ""
                 # TODO: delete from dest devices
                 self.ui.deviceTableView.model().removeRow(i.row())
 
     def _export(self):
         data = self.ui.variableTableView.model()._data
-        devices = data.groupby("Source Device")
+        devices = data.groupby(Column.SRC_DEV.value)
         
         for name, data in devices:
             print(f"Ive found data for device {name}, list of entries is {len(data)}")

@@ -43,12 +43,15 @@ class TableModel(QAbstractTableModel):
         self.endInsertRows()
         return True
 
-    def deleteRow(self, row: int) -> bool:
+    def removeRow(self, row: int) -> bool:
+        self.beginRemoveRows(QModelIndex(), row, row)
         try:
             self._data.drop(row, inplace=True)
-            return True
+            succ = True
         except KeyError:
-            return False
+            succ = False
+        self.endRemoveRows()
+        return succ
 
     def rowCount(self, _ = None):
         return len(self._data)

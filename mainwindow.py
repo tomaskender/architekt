@@ -59,7 +59,6 @@ class MainWindow(QMainWindow):
         if self.ui.tabWidget.currentIndex() == 0:
             indices = self.ui.variableTableView.selectionModel().selectedRows()
             for i in sorted(indices):
-                # TODO: deletion from variables does not work
                 self.ui.variableTableView.model().removeRow(i.row())
         else:
             indices = self.ui.deviceTableView.selectionModel().selectedRows()
@@ -69,8 +68,6 @@ class MainWindow(QMainWindow):
                 varModel = self.ui.variableTableView.model()._data
                 varModel.loc[varModel["Source Device"] == name, "Source Device"] = ""
                 # TODO: delete from dest devices
-
-                # TODO: deletion from devices does not work
                 self.ui.deviceTableView.model().removeRow(i.row())
 
     def _export(self):

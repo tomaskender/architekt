@@ -5,22 +5,21 @@ class MultiSelectDelegate(QtWidgets.QItemDelegate):
     def __init__(self, values: List[str], parent=None):
         QtWidgets.QItemDelegate.__init__(self, parent)
         self._data = values
+        self._selected = []
 
     def createEditor(self, parent, option, index):
         editor = QtWidgets.QListWidget(parent)
         editor.setSelectionMode(QtWidgets.QListWidget.SelectionMode.MultiSelection)
         editor.addItems(self._data)
 
+        def selectionChanged():
+            self._selected = editor.selectedItems()
+        editor.itemSelectionChanged.connect(selectionChanged)
+
         return editor
 
     def setEditorData(self, editor, index):
-
-        model_value = index.model().data(index, QtCore.Qt.EditRole)
-
-        current_index = editor.indexAt(model_value)
-        if current_index > 0:
-            editor.setCurrentIndex(current_index)
+        editor.setCurrentIndex(index)
 
     def setModelData(self, editor, model, index):
-        editor_value = editor.currentItem()
-        model.setData(index, editor_value, QtCore.Qt.EditRole)
+        model.setData(index, ", ".join(list(map(lambda x: x.text(), self._selected))), QtCore.Qt.EditRole)

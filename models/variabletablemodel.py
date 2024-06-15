@@ -3,7 +3,7 @@ from models.column import Column
 from models.tablemodel import TableModel
 
 class VariableTableModel(TableModel):
-    def __init__(self, data: pd.DataFrame = pd.DataFrame()):
+    def __init__(self, data: pd.DataFrame):
         cols = [
             Column.NAME.value,
             Column.TYPE.value,

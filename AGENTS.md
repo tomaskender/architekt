@@ -62,7 +62,7 @@ config.ini ──► MainWindow ──► VariableTableModel (pandas DataFrame)
 value = uint8 uint16 uint32 int8 int16 int32 float32   # Variable data types
 
 [devices]
-dev = wheel vcu cooling pc                              # Available device names
+names = wheel vcu cooling pc                            # Available device names
 ```
 
 Adding a new type or device: edit the appropriate space-separated list in `config.ini` — no code changes needed.
@@ -71,19 +71,19 @@ Adding a new column: update the `Column` enum in `models/column.py`, add the col
 
 ## Key Implementation Details
 
-- All table data is stored in pandas DataFrames (`_data` attribute on `TableModel`). Row insertion appends a new row of empty strings; row deletion uses `DataFrame.drop`.
-- Destination Devices are stored as a comma-separated string in a single cell (e.g., `"wheel,vcu"`). `MultiSelectDelegate` splits/joins on comma.
-- Device renames propagate to Variables: `MainWindow` passes an `onChange` callback to `DeviceTableModel` that rewrites affected cells in the Variables table.
+- All table data is stored in pandas DataFrames inside `TableModel`. Access externally via the `data_frame` property, not the private `_data` attribute.
+- New rows are pre-filled with defaults: `0` for numeric columns, the first config value for enum columns, empty string otherwise. Defaults are passed as a dict to `TableModel.__init__`.
+- Destination Devices are stored as a comma-separated string in a single cell (e.g., `"wheel, vcu"`). `MultiSelectDelegate` splits on `", "` to restore selections and joins on `", "` to save them.
+- Device changes propagate from `DeviceTableModel` to `VariableTableModel` via `onChange`/`onRemove` callbacks registered in `MainWindow`. The actual rewrite logic lives in `VariableTableModel.rename_device` and `VariableTableModel.clear_device`.
+- The `devices` list passed to `ComboboxDelegate` and `MultiSelectDelegate` is the same object held in `MainWindow`. Device additions, renames, and removals mutate it in place, so delegate option lists stay in sync automatically.
 - `ui_form.py` is auto-generated from `form.ui` by Qt's `uic` tool — do not edit it directly. Regenerate with: `pyside6-uic ui/form.ui -o ui/ui_form.py`
 
 ## Known Gaps / TODOs
 
-- **Export is a stub** (`mainwindow.py:84–90`): prints device names to stdout, no actual file output.
+- **Export is a stub**: prints device names to stdout, no actual file output.
 - **Menu actions unconnected**: File → Open/Save/Close and Help → About are defined in the UI but have no signal handlers.
 - **No data persistence**: table contents are lost on close.
-- **MultiSelectDelegate** does not pre-select already-stored values when the editor opens.
 - **No tests**: no test directory or framework configured. Models and delegates are good candidates for pytest unit tests.
-- One `# TODO` in `mainwindow.py:79` — device-deletion cleanup logic should move into the model's `onRemove` callback.
 
 ## Development Notes
 

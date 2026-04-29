@@ -3,7 +3,7 @@ from models.column import Column
 from models.tablemodel import TableModel
 
 class VariableTableModel(TableModel):
-    def __init__(self, data: pd.DataFrame):
+    def __init__(self, data: pd.DataFrame, defaults: dict = {}):
         cols = [
             Column.NAME.value,
             Column.TYPE.value,
@@ -13,4 +13,4 @@ class VariableTableModel(TableModel):
             Column.SRC_DEV.value,
             Column.DST_DEV.value
         ]
-        super(VariableTableModel, self).__init__(cols, data)
+        super(VariableTableModel, self).__init__(cols, data, defaults)

@@ -8,10 +8,12 @@ class TableModel(QAbstractTableModel):
             self,
             cols: List[str],
             data: pd.DataFrame = pd.DataFrame(),
+            defaults: dict = {},
     ):
         super(TableModel, self).__init__()
         self._cols = cols
-        self._data = data
+        self._data = data if not data.empty else pd.DataFrame(columns=cols)
+        self._defaults = defaults
         self._onChange = None
         self._onRemove = None
 
@@ -45,7 +47,7 @@ class TableModel(QAbstractTableModel):
     def insertRow(self, row: int) -> bool:
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
         
-        empty_data = {col: [''] for col in self._cols}
+        empty_data = {col: [self._defaults.get(col, '')] for col in self._cols}
         empty_df = pd.DataFrame(empty_data)
 
         # Slice the original DataFrame into two parts

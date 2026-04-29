@@ -22,20 +22,28 @@ class MainWindow(QMainWindow):
         self.ui.variableTableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         # Setup variable tab
-        varTableModel = VariableTableModel(pd.DataFrame())
+        types = config.get("types", "value").split(" ")
+        devices = config.get("types", "dev").split(" ")
+        var_defaults = {
+            Column.TYPE.value: types[0],
+            Column.PUBLISHING.value: "Sync",
+            Column.RATE.value: "0",
+            Column.SRC_DEV.value: devices[0],
+        }
+        varTableModel = VariableTableModel(pd.DataFrame(), var_defaults)
         varTableView = self.ui.variableTableView
         varTableView.setModel(varTableModel)
         varTableView.setItemDelegateForColumn(
-            varTableModel.columns().index(Column.TYPE.value), ComboboxDelegate(config.get("types", "value").split(" "), varTableView))
+            varTableModel.columns().index(Column.TYPE.value), ComboboxDelegate(types, varTableView))
         varTableView.setItemDelegateForColumn(
             varTableModel.columns().index(Column.PUBLISHING.value), ComboboxDelegate(["Sync", "Async"], varTableView))
         varTableView.setItemDelegateForColumn(
-            varTableModel.columns().index(Column.SRC_DEV.value), ComboboxDelegate(config.get("types", "dev").split(" "), varTableView))
+            varTableModel.columns().index(Column.SRC_DEV.value), ComboboxDelegate(devices, varTableView))
         varTableView.setItemDelegateForColumn(
-            varTableModel.columns().index(Column.DST_DEV.value), MultiSelectDelegate(config.get("types", "dev").split(" "), varTableView))
+            varTableModel.columns().index(Column.DST_DEV.value), MultiSelectDelegate(devices, varTableView))
 
         # Setup device tab
-        devTableModel = DeviceTableModel(pd.DataFrame())
+        devTableModel = DeviceTableModel(pd.DataFrame({Column.NAME.value: devices}))
         devTableView = self.ui.deviceTableView
         devTableView.setModel(devTableModel)
 

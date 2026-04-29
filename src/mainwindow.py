@@ -23,14 +23,14 @@ class MainWindow(QMainWindow):
 
         # Setup variable tab
         types = config.get("types", "value").split(" ")
-        devices = config.get("types", "dev").split(" ")
+        devices = config.get("devices", "names").split(" ")
         var_defaults = {
             Column.TYPE.value: types[0],
             Column.PUBLISHING.value: "Sync",
             Column.RATE.value: "0",
             Column.SRC_DEV.value: devices[0],
         }
-        varTableModel = VariableTableModel(pd.DataFrame(), var_defaults)
+        varTableModel = VariableTableModel(defaults=var_defaults)
         varTableView = self.ui.variableTableView
         varTableView.setModel(varTableModel)
         varTableView.setItemDelegateForColumn(
@@ -48,16 +48,19 @@ class MainWindow(QMainWindow):
         devTableView.setModel(devTableModel)
 
         def updateDeviceInVariableTable(index, old, new):
-            if index.column() == devTableModel.columns().index(Column.NAME.value) and old != "":
-                model = varTableModel._data
-
-                model.loc[model[Column.SRC_DEV.value] == old, Column.SRC_DEV.value] = new
-                model[Column.DST_DEV] = model[Column.DST_DEV.value].str.split(", ") \
-                    .apply(lambda devs: [dev if dev != old else new for dev in devs]).join(", ")
+            if index.column() == devTableModel.columns().index(Column.NAME.value):
+                if old == "" and new != "":
+                    devices.append(new)
+                elif old != "":
+                    varTableModel.rename_device(old, new)
+                    if old in devices:
+                        devices[devices.index(old)] = new
         devTableModel.setOnChange(updateDeviceInVariableTable)
 
         def removeDeviceFromVariableTable(index, value):
-            updateDeviceInVariableTable(index, value, "")
+            varTableModel.clear_device(value)
+            if value in devices:
+                devices.remove(value)
         devTableModel.setOnRemove(removeDeviceFromVariableTable)
 
         # Setup buttons
@@ -81,19 +84,12 @@ class MainWindow(QMainWindow):
             else:
                 indices = devTableView.selectionModel().selectedRows()
                 for i in sorted(indices):
-                    # delete currently selected device from variables
-                    name = i.data()
-                    varModel = varTableModel._data
-                    # TODO move line below to model event
-                    varModel.loc[varModel[Column.SRC_DEV.value] == name, Column.SRC_DEV.value] = ""
                     devTableModel.removeRow(i.row())
         self.ui.removeRowButton.clicked.connect(lambda: remove_row())
 
         def export():
-            data = varTableModel._data
-            devices = data.groupby(Column.SRC_DEV.value)
-
-            for name, data in devices:
-                print(f"Ive found data for device {name}, list of entries is {len(data)}")
+            data = varTableModel.data_frame
+            for name, group in data.groupby(Column.SRC_DEV.value):
+                print(f"Ive found data for device {name}, list of entries is {len(group)}")
         self.ui.exportButton.clicked.connect(lambda: export())
         # self.ui.actionExport.triggered.connect(lambda: self._export())

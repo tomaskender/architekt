@@ -19,7 +19,7 @@ class ComboboxDelegate(QtWidgets.QItemDelegate):
         model_value = index.model().data(index, QtCore.Qt.EditRole)
 
         current_index = editor.findText(model_value)
-        if current_index > 0:
+        if current_index >= 0:
             editor.setCurrentIndex(current_index)
 
     def setModelData(self, editor, model, index):
